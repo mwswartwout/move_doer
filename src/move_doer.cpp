@@ -27,45 +27,9 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh; //standard ros node handle        
     int g_count = 0;
     int ans;
-    //Vectorq7x1 q_pre_pose;
-    
-    //q_in << 0, 0, 0, 0, 0, 0, 0;  
-    //q_pre_pose<< -0.907528, -0.111813,   2.06622,    1.8737,    -1.295,   2.00164,  -2.87179;
-    //Eigen::VectorXd q_in_vecxd;
-    //Vectorq7x1 q_vec_right_arm;
-       
-  
-    //std::vector<Eigen::VectorXd> des_path;
-    // cout<<"creating des_path vector; enter 1:";
-    //cin>>ans;
-        
 
     trajectory_msgs::JointTrajectory des_trajectory; // an empty trajectory 
 
-    //cout<<"instantiating a traj streamer"<<endl; // enter 1:";
-    //cin>>ans;
-    //Baxter_traj_streamer baxter_traj_streamer(&nh); //instantiate a Baxter_traj_streamer object and pass in pointer to nodehandle for constructor to use  
-    // warm up the joint-state callbacks;
-    //cout<<"warming up callbacks..."<<endl;
-    //for (int i=0;i<100;i++) {
-    //    ros::spinOnce();
-        //cout<<"spin "<<i<<endl;
-    //    ros::Duration(0.01).sleep();
-    //}
-
-    // Get current right arm state
-    //cout<<"getting current right-arm pose:"<<endl;
-    //q_vec_right_arm =  baxter_traj_streamer.get_qvec_right_arm();  
-    //cout<<"r_arm state:"<<q_vec_right_arm.transpose()<<endl;    
-
-    //q_in_vecxd = q_vec_right_arm; // start from here;
-    //des_path.push_back(q_in_vecxd); //put all zeros here
-    //q_in_vecxd = q_pre_pose; // conversion; not sure why I needed to do this...but des_path.push_back(q_in_vecxd) likes it
-    //des_path.push_back(q_in_vecxd); //twice, to define a trajectory  
-    
-
-    //cout << "stuffing traj: " << endl;
-    //baxter_traj_streamer.stuff_trajectory(des_path, des_trajectory); //convert from vector of 7dof poses to trajectory message        
     // here is a "goal" object compatible with the server, as defined in example_action_server/action
     baxter_traj_streamer::trajGoal goal; 
     // does this work?  copy traj to goal:
@@ -92,8 +56,6 @@ int main(int argc, char** argv) {
        
     ROS_INFO("connected to action server");  // if here, then we connected to the server;
 
-    //while(true) {
-    // stuff a goal message:
     g_count++;
     goal.traj_id = g_count; // this merely sequentially numbers the goals sent
     ROS_INFO("sending traj_id %d",g_count);
@@ -111,8 +73,6 @@ int main(int argc, char** argv) {
         ROS_INFO("finished before timeout");
     }
         
-    //}
-
     return 0;
 }
 
