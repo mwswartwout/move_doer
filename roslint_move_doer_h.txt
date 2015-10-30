@@ -1,0 +1,3 @@
+include/move_doer/move_doer.h:44:  Is this a non-const reference? If so, make const or use a pointer: baxter_traj_streamer::trajGoal &goal  [runtime/references] [2]
+Done processing include/move_doer/move_doer.h
+Total errors found: 1

@@ -1,0 +1,2 @@
+Done processing src/move_doer.cpp
+Total errors found: 0
