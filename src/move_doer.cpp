@@ -1,76 +1,108 @@
-#include<ros/ros.h>
+///  Copyright 2015 Matthew Swartwout
+
+#include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <baxter_traj_streamer/baxter_traj_streamer.h>
-//this #include refers to the new "action" message defined for this package
-// the action message can be found in: .../baxter_traj_streamer/action/traj.action
-// automated header generation creates multiple headers for message I/O
-// these are referred to by the root name (traj) and appended name (Action)
-// If you write a new client of the server in this package, you will need to include baxter_traj_streamer in your package.xml,
-// and include the header file below
-#include<baxter_traj_streamer/trajAction.h>
-#include<my_interesting_moves/interesting_moves.h>
+#include <baxter_traj_streamer/trajAction.h>
+#include <my_interesting_moves/interesting_moves.h>
 #include <move_doer/move_doer.h>
 
-#define VECTOR_DIM 7 // e.g., a 7-dof vector
-
-MoveDoer::MoveDoer() : action_client("trajActionServer", true) {
+MoveDoer::MoveDoer() : action_client("trajActionServer", true)
+{
     g_count = 0;
 }
-// This function will be called once when the goal completes
-// this is optional, but it is a convenient way to get access to the "result" message sent by the server
-void MoveDoer::doneCb(  const actionlib::SimpleClientGoalState& state,
-                        const baxter_traj_streamer::trajResultConstPtr& result) {
+
+///  This function will be called once when the goal completes
+///  this is optional, but it is a convenient way to get access to the "result" message sent by the server
+void MoveDoer::doneCb(const actionlib::SimpleClientGoalState& state,
+                      const baxter_traj_streamer::trajResultConstPtr& result)
+{
     ROS_INFO(" doneCb: server responded with state [%s]", state.toString().c_str());
-    ROS_INFO("got return val = %d; traj_id = %d",result->return_val,result->traj_id);
+    ROS_INFO("got return val = %d; traj_id = %d", result->return_val, result->traj_id);
 }
 
-void MoveDoer::sendMoveToServer(baxter_traj_streamer::trajGoal &goal) {
+void MoveDoer::sendMoveToServer(baxter_traj_streamer::trajGoal &goal)
+{
     g_count++;
-    goal.traj_id = g_count; // this merely sequentially numbers the goals sent
-    ROS_INFO("sending traj_id %d",g_count);
-    //action_client.sendGoal(goal); // simple example--send goal, but do not specify callbacks
-    action_client.sendGoal(goal, &doneCb); // we could also name additional callback functions here, if desired
-    //    action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb); //e.g., like this
-      
-    bool finished_before_timeout = action_client.waitForResult(ros::Duration(5.0));
-    //bool finished_before_timeout = action_client.waitForResult(); // wait forever...
-    if (!finished_before_timeout) {
-        ROS_WARN("giving up waiting on result for goal number %d",g_count);
+    goal.traj_id = g_count;  /// this merely sequentially numbers the goals sent
+    ROS_INFO("sending traj_id %d", g_count);
+
+    action_client.sendGoal(goal, &doneCb);
+
+    bool finished_before_timeout = action_client.waitForResult(ros::Duration(40.0));
+    if (!finished_before_timeout)
+    {
+        ROS_WARN("giving up waiting on result for goal number %d", g_count);
     }
-    else {
+    else
+    {
         ROS_INFO("finished before timeout");
     }
 }
 
-bool MoveDoer::startServer() {
+bool MoveDoer::startServer()
+{
     ROS_INFO("waiting for server: ");
-    bool server_exists = action_client.waitForServer(ros::Duration(5.0)); // wait for up to 5 seconds
-    // something odd in above: does not seem to wait for 5 seconds, but returns rapidly if server not running
+    bool server_exists = action_client.waitForServer(ros::Duration(5.0));  /// wait for up to 5 seconds
+    int fail_count = 0;
 
-    if (!server_exists) {
-        ROS_WARN("could not connect to server; will wait forever");
-        return false; // bail out; optionally, could print a warning message and retry
+    if (!server_exists)
+    {
+        ROS_WARN("could not connect to server; will try again");
+        while (fail_count < 10)
+        {
+            server_exists = action_client.waitForServer(ros::Duration(5.0));
+            if (server_exists)
+            {
+                ROS_INFO("connected to action server");  /// if here, then we connected to the server;
+                return true;
+            }
+
+            fail_count++;
+        }
+        return false;
     }
-    server_exists = action_client.waitForServer(); //wait forever 
-        
-    ROS_INFO("connected to action server");  // if here, then we connected to the server;
+
+    ROS_INFO("connected to action server");  /// if here, then we connected to the server;
     return true;
 }
 
-void MoveDoer::doMoves() {
+void MoveDoer::doMoves()
+{
+    trajectory_msgs::JointTrajectory des_trajectory;  /// an empty trajectory
+
+    /// Baxter assumes the position
     move_maker.set_move_ready(des_trajectory);
     goal.trajectory = des_trajectory;
     sendMoveToServer(goal);
+
+    /// Baxter gives you a friendly wave
+    move_maker.set_move_wave(des_trajectory);
+    goal.trajectory = des_trajectory;
+    sendMoveToServer(goal);
+
+    /// Baxter is displeased with what you've done
+    move_maker.set_move_tsk_tsk(des_trajectory);
+    goal.trajectory = des_trajectory;
+    sendMoveToServer(goal);
+
+    /// Baxter karate chops you in the face
+    move_maker.set_move_chop(des_trajectory);
+    goal.trajectory = des_trajectory;
+    sendMoveToServer(goal);
 }
-int main(int argc, char** argv) {
-    ros::init(argc, argv, "move_doer_node"); // name this node 
+
+int main(int argc, char** argv)
+{
+    ros::init(argc, argv, "move_doer_node");
     MoveDoer move_doer;
 
-    if (move_doer.startServer()) { 
-        move_doer.doMoves();   
-    } 
-    
+    /// If we can start the server, do the moves
+    if (move_doer.startServer())
+    {
+        move_doer.doMoves();
+    }
 
     return 0;
 }

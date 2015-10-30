@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   baxter_traj_streamer
   trajectory_msgs
+  roslint
 )
 
 ## System dependencies are found with CMake's conventions
@@ -190,3 +191,5 @@ target_link_libraries(move_doer ${catkin_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+roslint_cpp()
