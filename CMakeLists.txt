@@ -7,11 +7,14 @@ project(move_doer)
 find_package(catkin REQUIRED COMPONENTS
   my_interesting_moves
   roscpp
+  baxter_traj_streamer
+  trajectory_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(cmake_modules REQUIRED)
+find_package(Eigen REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -111,10 +114,10 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(include)
+include_directories(${catkin_INCLUDE_DIRS})
+include_directories(${EIGEN_INCLUDE_DIR})
+add_definitions(${EIGEN_DEFINITIONS})
 
 ## Declare a C++ library
 # add_library(move_doer
@@ -128,6 +131,7 @@ include_directories(
 
 ## Declare a C++ executable
 # add_executable(move_doer_node src/move_doer_node.cpp)
+add_executable(move_doer src/move_doer.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -137,6 +141,7 @@ include_directories(
 # target_link_libraries(move_doer_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(move_doer ${catkin_LIBRARIES})
 
 #############
 ## Install ##
